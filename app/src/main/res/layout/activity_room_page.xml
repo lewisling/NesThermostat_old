@@ -1,0 +1,106 @@
+<RelativeLayout
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:background="#eb6d00"
+    >
+
+    <net.valentinc.CircularSeekBar.CircularSeekBar
+        android:id="@+id/circularSeekBar1"
+        android:layout_width="300dp"
+        android:layout_height="fill_parent"
+        app:start_angle="150"
+        app:end_angle="30"
+        app:max="30"
+        app:progress="1"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Chambre"
+        android:id="@+id/textView"
+        android:textSize="30dp"
+        android:textColor="#ffffff"
+        android:layout_alignParentTop="true"
+        android:layout_alignRight="@+id/tvDeg"
+        android:layout_alignEnd="@+id/tvDeg"
+        android:layout_marginRight="6dp"
+        android:layout_marginEnd="6dp"
+        android:layout_marginTop="8dp" />
+
+    <ImageView
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:id="@+id/imageView3"
+        android:background="@drawable/abc_ic_ab_back_mtrl_am_alpha"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="21"
+        android:id="@+id/tvDeg"
+        android:textSize="65dp"
+        android:textColor="#ffffff"
+        android:layout_centerVertical="true"
+        android:layout_alignLeft="@+id/switchHeaterOn"
+        android:layout_alignStart="@+id/switchHeaterOn" />
+
+    <TextView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="5"
+        android:id="@+id/tvDecDeg"
+        android:textSize="35dp"
+        android:textColor="#ffffff"
+        android:layout_alignTop="@+id/tvDeg"
+        android:layout_alignLeft="@+id/tvDeg"
+        android:layout_alignStart="@+id/tvDeg"
+        android:layout_marginLeft="73dp"
+        android:layout_marginStart="73dp" />
+
+    <Switch
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/switchHeaterOn"
+        android:checked="false"
+        android:layout_below="@+id/tvDeg"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="39dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Temperature Actuelle"
+        android:id="@+id/textView3"
+        android:layout_below="@+id/circularSeekBar1"
+        android:layout_centerHorizontal="true"
+        android:textColor="#ffffff" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="°C"
+        android:id="@+id/textView4"
+        android:layout_below="@+id/textView3"
+        android:layout_toRightOf="@+id/tvTempActu"
+        android:layout_toEndOf="@+id/tvTempActu"
+        android:textColor="#ffffff" />
+
+    <TextView
+        android:layout_width="45dp"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:id="@+id/tvTempActu"
+        android:layout_below="@+id/textView3"
+        android:layout_centerHorizontal="true"
+        android:textColor="#ffffff" />
+
+</RelativeLayout>

@@ -1,0 +1,112 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:background="@drawable/background" tools:context=".MainPage">
+
+    <!-- The primary full-screen view. This can be replaced with whatever view
+         is needed to present your content, e.g. VideoView, SurfaceView,
+         TextureView, etc. -->
+    <TextView android:id="@+id/fullscreen_content" android:layout_width="match_parent"
+        android:layout_height="match_parent" android:keepScreenOn="true" android:textColor="#33b5e5"
+        android:textStyle="bold" android:textSize="50sp" android:gravity="center" />
+
+    <!-- This FrameLayout insets its children based on system windows using
+         android:fitsSystemWindows. -->
+    <RelativeLayout android:layout_width="match_parent" android:layout_height="match_parent"
+        android:fitsSystemWindows="true"
+        android:id="@+id/background"
+        android:layout_gravity="center">
+
+        <LinearLayout android:id="@+id/fullscreen_content_controls"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal" android:orientation="horizontal"
+            tools:ignore="UselessParent">
+
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="110dp"
+            android:layout_height="110dp"
+            android:id="@+id/imageView2"
+            android:layout_gravity="center"
+            android:src="@drawable/logo"
+            android:layout_marginTop="68dp"
+            android:layout_below="@+id/fullscreen_content_controls"
+            android:layout_centerHorizontal="true" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Chez moi"
+            android:id="@+id/tvChezMoi"
+            android:typeface="normal"
+            android:layout_below="@+id/imageView2"
+            android:layout_centerHorizontal="true"
+            android:textSize="10pt" />
+
+        <ImageView
+            android:layout_width="110dp"
+            android:layout_height="110dp"
+            android:id="@+id/imageView"
+            android:src="@drawable/temp"
+            android:layout_above="@+id/textView2"
+            android:layout_toLeftOf="@+id/tvChezMoi"
+            android:layout_toStartOf="@+id/tvChezMoi" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Chambre"
+            android:id="@+id/textView2"
+            android:typeface="normal"
+            android:textSize="9pt"
+            android:textColor="#ffffff"
+            android:layout_marginBottom="38dp"
+            android:layout_alignParentBottom="true"
+            android:layout_toLeftOf="@+id/imageView2"
+            android:layout_toStartOf="@+id/imageView2"
+            android:layout_marginRight="7dp"
+            android:layout_marginEnd="7dp" />
+
+        <TextView
+            android:layout_width="250dp"
+            android:layout_height="25dp"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:id="@+id/tvMeteo"
+            android:layout_below="@+id/tvChezMoi"
+            android:layout_centerHorizontal="true"
+            android:textAlignment="center"
+            android:textColor="#8d8b8b"
+            android:layout_alignParentEnd="false" />
+
+        <TextView
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/tvDeg"
+            android:textSize="38dp"
+            android:textColor="#ffffff"
+            android:typeface="normal"
+            android:layout_marginTop="25dp"
+            android:layout_alignTop="@+id/imageView"
+            android:layout_alignLeft="@+id/textView2"
+            android:layout_alignStart="@+id/textView2" />
+
+        <TextView
+            android:layout_width="20dp"
+            android:layout_height="35dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/tvDeciDeg"
+            android:textSize="25dp"
+            android:textColor="#ffffff"
+            android:layout_alignTop="@+id/imageView"
+            android:layout_alignRight="@+id/textView2"
+            android:layout_alignEnd="@+id/textView2"
+            android:layout_marginRight="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginTop="15dp" />
+
+    </RelativeLayout>
+
+</FrameLayout>
