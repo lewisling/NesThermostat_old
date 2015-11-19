@@ -1,106 +1,119 @@
-<RelativeLayout
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_width="match_parent"
     android:layout_height="match_parent" android:background="#eb6d00"
     >
 
-    <net.valentinc.CircularSeekBar.CircularSeekBar
-        android:id="@+id/circularSeekBar1"
-        android:layout_width="300dp"
-        android:layout_height="fill_parent"
-        app:start_angle="150"
-        app:end_angle="30"
-        app:max="30"
-        app:progress="1"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
-
     <TextView
+        android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Chambre"
-        android:id="@+id/textView"
-        android:textSize="30dp"
-        android:textColor="#ffffff"
+        android:layout_alignEnd="@+id/tvDeg"
         android:layout_alignParentTop="true"
         android:layout_alignRight="@+id/tvDeg"
-        android:layout_alignEnd="@+id/tvDeg"
-        android:layout_marginRight="6dp"
         android:layout_marginEnd="6dp"
-        android:layout_marginTop="8dp" />
+        android:layout_marginRight="6dp"
+        android:layout_marginTop="8dp"
+        android:text="Chambre"
+        android:textColor="#ffffff"
+        android:textSize="30dp" />
 
     <ImageView
+        android:id="@+id/imageView3"
         android:layout_width="55dp"
         android:layout_height="55dp"
-        android:id="@+id/imageView3"
-        android:background="@drawable/abc_ic_ab_back_mtrl_am_alpha"
-        android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:src="@android:drawable/ic_menu_info_details" />
 
     <TextView
+        android:id="@+id/tvDeg"
         android:layout_width="80dp"
         android:layout_height="80dp"
+        android:layout_below="@+id/textView3"
+        android:layout_toLeftOf="@+id/tvDecDeg"
+        android:layout_toStartOf="@+id/tvDecDeg"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="21"
-        android:id="@+id/tvDeg"
-        android:textSize="65dp"
         android:textColor="#ffffff"
-        android:layout_centerVertical="true"
-        android:layout_alignLeft="@+id/switchHeaterOn"
-        android:layout_alignStart="@+id/switchHeaterOn" />
+        android:textSize="65dp" />
 
     <TextView
+        android:id="@+id/tvDecDeg"
         android:layout_width="40dp"
         android:layout_height="40dp"
+        android:layout_below="@+id/textView3"
+        android:layout_toEndOf="@+id/tvTempHeater"
+        android:layout_toRightOf="@+id/tvTempHeater"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="5"
-        android:id="@+id/tvDecDeg"
-        android:textSize="35dp"
         android:textColor="#ffffff"
-        android:layout_alignTop="@+id/tvDeg"
-        android:layout_alignLeft="@+id/tvDeg"
-        android:layout_alignStart="@+id/tvDeg"
-        android:layout_marginLeft="73dp"
-        android:layout_marginStart="73dp" />
-
-    <Switch
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/switchHeaterOn"
-        android:checked="false"
-        android:layout_below="@+id/tvDeg"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="39dp" />
+        android:textSize="35dp" />
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Temperature Actuelle"
         android:id="@+id/textView3"
-        android:layout_below="@+id/circularSeekBar1"
-        android:layout_centerHorizontal="true"
-        android:textColor="#ffffff" />
-
-    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/toggleHeaterOn"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="83dp"
+        android:text="Temperature Actuelle"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="°C"
-        android:id="@+id/textView4"
-        android:layout_below="@+id/textView3"
-        android:layout_toRightOf="@+id/tvTempActu"
-        android:layout_toEndOf="@+id/tvTempActu"
         android:textColor="#ffffff" />
 
     <TextView
-        android:layout_width="45dp"
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/tvDeg"
+        android:layout_alignEnd="@+id/textView3"
+        android:layout_alignRight="@+id/textView3"
+        android:text="°C"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:id="@+id/tvTempActu"
-        android:layout_below="@+id/textView3"
+        android:textColor="#ffffff"
+        android:textSize="40dp" />
+
+    <TextView
+        android:id="@+id/tvTempHeater"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_above="@+id/toggleHeaterOn"
         android:layout_centerHorizontal="true"
-        android:textColor="#ffffff" />
+        android:layout_marginBottom="22dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="#ffffff"
+        android:textSize="65dp" />
+
+    <ToggleButton
+        android:id="@+id/toggleHeaterOn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:checked="false" />
+
+    <net.valentinc.circularseekbar.CircularSeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_below="@+id/imageView3"
+        android:layout_marginTop="49dp"
+        android:layout_toEndOf="@+id/imageView3"
+        android:layout_toRightOf="@+id/imageView3"
+        android:progress="1"
+        app:end_angle="0"
+        app:max="30"
+        app:start_angle="180" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/tvTempHeater"
+        android:layout_toEndOf="@+id/tvTempHeater"
+        android:layout_toRightOf="@+id/tvTempHeater"
+        android:text="°C"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="#ffffff"
+        android:textSize="40dp" />
 
 </RelativeLayout>
