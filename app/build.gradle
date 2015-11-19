@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    com***REMOVED***leSdkVersion 23
+    com***REMOVED***leSdkVersion 21
     buildToolsVersion "23.0.2"
 
     defaultConfig {
         applicationId "net.valentinc.nesthermostat"
         minSdkVersion 15
-        targetSdkVersion 23
+        targetSdkVersion 21
         versionCode 1
         versionName "1.0"
     }
@@ -22,6 +22,5 @@ android {
 dependencies {
     com***REMOVED***le fileTree(include: ['*.jar'], dir: 'libs')
     testCom***REMOVED***le 'junit:junit:4.12'
-    com***REMOVED***le 'com.android.support:appcompat-v7:23.1.0'
-    com***REMOVED***le 'com.android.support:support-v4:23.1.0'
+    com***REMOVED***le 'com.android.support:support-v4:21.0.3'
 }

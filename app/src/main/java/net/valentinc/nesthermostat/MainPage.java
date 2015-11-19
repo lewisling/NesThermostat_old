@@ -1,13 +1,13 @@
 package net.valentinc.nesthermostat;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import net.valentinc.server.Temperature;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -15,18 +15,46 @@ import android.view.View;
  */
 public class MainPage extends Activity {
 
+    private TextView tvDeg;
+    private TextView tvDecDeg;
+    private ImageView imageView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main_page);
+        tvDeg = (TextView) findViewById(R.id.tvDeg);
+        tvDecDeg = (TextView) findViewById(R.id.tvDecDeg);
+        imageView = (ImageView) findViewById(R.id.imageViewChambre);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), RoomPage.class);
+                startActivity(intent);
+            }
+        });
 
         //Get the current temp from the sensor to put it inside the 2 textviews
-
+        final float[] temp = new float[1];
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                temp[0] = Temperature.getCurrentTemperature();
+                UpdateIHM(String.valueOf((int) temp[0]), tvDeg);
+                UpdateIHM(String.valueOf((int) (((int) temp[0]) - temp[0])), tvDecDeg);
+            }
+        }).start();
         //Get the current temp from the weather to the textview under the logo
+//http://www.survivingwithandroid.com/2013/05/build-weather-app-json-http-android.html
+    }
 
-        // on click listener for imageview to go to the new activity
-
-        // TODO : add a logo to see directly if heater is on or not
+    public void UpdateIHM(final String res, final TextView t) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                t.setText(res);
+            }
+        });
     }
 }
