@@ -42,7 +42,7 @@ public class MainPage extends Activity {
             public void run() {
                 temp[0] = Temperature.getCurrentTemperature();
                 UpdateIHM(String.valueOf((int) temp[0]), tvDeg);
-                UpdateIHM(String.valueOf((int) (((int) temp[0]) - temp[0])), tvDecDeg);
+                UpdateIHM(String.valueOf((int)((temp[0]-((int) temp[0]))*10)), tvDecDeg);
             }
         }).start();
         //Get the current temp from the weather to the textview under the logo
