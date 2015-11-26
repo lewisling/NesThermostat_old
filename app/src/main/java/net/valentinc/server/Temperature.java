@@ -55,7 +55,6 @@ public abstract class Temperature {
         }
         return Float.parseFloat(res);
     }
-
     public static String inputStreamToString(InputStream is) throws IOException {
         char[] buffer = new char[10];
         Reader reader = new InputStreamReader(is, "UTF-8");
