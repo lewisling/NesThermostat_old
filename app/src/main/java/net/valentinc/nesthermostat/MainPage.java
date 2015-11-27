@@ -6,8 +6,11 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import net.valentinc.server.Temperature;
+
+import java.io.IOException;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -40,7 +43,16 @@ public class MainPage extends Activity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                temp[0] = Temperature.getCurrentTemperature();
+                try {
+                    temp[0] = Temperature.getCurrentTemperature();
+                } catch (IOException e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), "Erreur Réseau", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
                 UpdateIHM(String.valueOf((int) temp[0]), tvDeg);
                 UpdateIHM(String.valueOf((int)((temp[0]-((int) temp[0]))*10)), tvDecDeg);
             }
