@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import net.valentinc.circularseekbar.CircularSeekBar;
@@ -56,12 +57,23 @@ public class RoomPage extends Activity {
                     public void run() {
                         //Call heater function
                         try {
-                            System.out.println(getISFromURL(new URL("http://***REMOVED***/android/android_heater.php?temp=" + tvTempHeater.getText() + "&activated=" + toggleButton.isChecked())).read());
+                            getISFromURL(new URL("http://***REMOVED***/android/android_heater.php?temp=" + tvTempHeater.getText() + "&activated=" + toggleButton.isChecked()));
                         } catch (MalformedURLException e) {
                             e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        } catch (final IOException e) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(RoomPage.this, "Erreur Réseau " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                }
+                            });
                         }
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(RoomPage.this,"Mise à jour Réussie", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
                 }).start();
             }
@@ -99,7 +111,16 @@ public class RoomPage extends Activity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                temp[0] = Temperature.getCurrentTemperature();
+                try {
+                    temp[0] = Temperature.getCurrentTemperature();
+                } catch (final IOException e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(RoomPage.this, "Erreur Réseau " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
                 UpdateIHM(String.valueOf((int) temp[0]), tvDeg);
                 UpdateIHM(String.valueOf((int)((temp[0]-((int) temp[0]))*10)), tvDecDeg);
             }
@@ -116,6 +137,7 @@ public class RoomPage extends Activity {
                 try {
                     iss[0] = getISFromURL(new URL("http://***REMOVED***/files/val_required_temp_file"));
                     resultat[0] = inputStreamToString(iss[0]);
+                    iss[0].close();
                     resultat[0] = resultat[0].substring(0, 2);
                     UpdateIHM(resultat[0], tvTempHeater);
                     runOnUiThread(new Runnable() {
@@ -126,8 +148,13 @@ public class RoomPage extends Activity {
                     });
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } catch (final IOException e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(RoomPage.this, "Erreur Réseau " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
             }
         }).start();
@@ -137,9 +164,16 @@ public class RoomPage extends Activity {
             @Override
             public void run() {
                 try {
-                    iss[1] = getISFromURL(new URL("http://***REMOVED***/files/is_on_heater"));
+                    iss[1] = getISFromURL(new URL("http://***REMOVED***/files/activated_file"));
                     resultat1[0] = inputStreamToString(iss[1]);
-                    final boolean res = Boolean.parseBoolean(resultat1[0]);
+                    iss[1].close();
+                    final boolean res;
+                    if(resultat1[0].substring(0,1).equals("t")||resultat1[0].substring(0,1).equals("T")){
+                        res = true;
+                    }
+                    else {
+                        res = false;
+                    }
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -148,40 +182,40 @@ public class RoomPage extends Activity {
                     });
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } catch (final IOException e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(RoomPage.this, "Erreur Réseau " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
             }
         }).start();
     }
 
-    public InputStream getISFromURL(URL url) {
+    public InputStream getISFromURL(URL url) throws IOException {
         InputStream is = null;
-        try {
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(10000 /* milliseconds */);
-            conn.setConnectTimeout(15000 /* milliseconds */);
-            conn.setRequestMethod("GET");
-            conn.setDoInput(true);
-            // Starts the query
-            conn.connect();
-            int response = conn.getResponseCode();
-            Log.d("RoomPage", "The response is: " + response);
-            if (response == 200) {
-                is = conn.getInputStream();
-            }
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (ProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setReadTimeout(10000 /* milliseconds */);
+        conn.setConnectTimeout(15000 /* milliseconds */);
+        conn.setRequestMethod("GET");
+        conn.setDoInput(true);
+        // Starts the query
+        conn.connect();
+        int response = conn.getResponseCode();
+        Log.d("RoomPage", "The response is: " + response);
+        if (response == 200) {
+            is = conn.getInputStream();
+        }
+        else {
+            throw new IOException("Serveur Injoignable");
         }
         return is;
     }
 
     public static String inputStreamToString(InputStream is) throws IOException {
-        char[] buffer = new char[10];
+        char[] buffer = new char[1000];
         Reader reader = new InputStreamReader(is, "UTF-8");
         reader.read(buffer);
         return new String(buffer);
