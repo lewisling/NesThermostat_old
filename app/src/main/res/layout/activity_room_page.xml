@@ -27,27 +27,6 @@
         android:layout_alignParentTop="true"
         android:src="@android:drawable/ic_menu_info_details" />
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Temps restant"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="#ffffff"
-        android:textIsSelectable="false"
-        android:textSize="15dp"
-        android:layout_below="@+id/seekArc"
-        android:layout_centerHorizontal="true" />
-
-    <ToggleButton
-        android:id="@+id/toggleHeaterOn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:checked="false"
-        android:layout_alignBottom="@+id/seekArc2"
-        android:layout_alignRight="@+id/seekArc2"
-        android:layout_alignEnd="@+id/seekArc2" />
-
     <net.valentinc.seekarc.SeekArc
         android:id="@+id/seekArc"
         android:layout_width="250dp"
@@ -152,5 +131,27 @@
         android:layout_below="@+id/tvTempHeater"
         android:layout_toRightOf="@+id/updateButton"
         android:layout_toEndOf="@+id/updateButton" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Temps restant"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="#ffffff"
+        android:textIsSelectable="false"
+        android:textSize="15dp"
+        android:layout_below="@+id/seekArc2"
+        android:layout_alignRight="@+id/tvDecDeg"
+        android:layout_alignEnd="@+id/tvDecDeg" />
+
+    <ToggleButton
+        android:id="@+id/toggleHeaterOn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        android:layout_below="@+id/seekArc"
+        android:layout_alignRight="@+id/seekArc2"
+        android:layout_alignEnd="@+id/seekArc2" />
 
 </RelativeLayout>
