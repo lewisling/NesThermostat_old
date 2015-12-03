@@ -20,7 +20,6 @@ public class MainPage extends Activity {
 
     private TextView tvDeg;
     private TextView tvDecDeg;
-    private ImageView imageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +28,7 @@ public class MainPage extends Activity {
         setContentView(R.layout.activity_main_page);
         tvDeg = (TextView) findViewById(R.id.tvDeg);
         tvDecDeg = (TextView) findViewById(R.id.tvDecDeg);
-        imageView = (ImageView) findViewById(R.id.imageViewChambre);
+        ImageView imageView = (ImageView) findViewById(R.id.imageViewChambre);
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

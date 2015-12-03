@@ -7,17 +7,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 
 /**
  * Created by ValentinC on 19/11/2015.
+ *
  */
 public abstract class Temperature {
     public static float getCurrentTemperature() throws IOException {
-        String res = null;
-        InputStream is = null;
+        String res;
+        InputStream is;
             URL url = new URL("http://valentinchatelard.ddns.net/android/getTemperature.php");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setReadTimeout(10000 /* milliseconds */);
@@ -43,9 +42,6 @@ public abstract class Temperature {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }
-            if (res == null) {
-                res = "-1";
             }
         return Float.parseFloat(res);
     }

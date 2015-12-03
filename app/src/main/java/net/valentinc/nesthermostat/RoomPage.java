@@ -1,7 +1,6 @@
 package net.valentinc.nesthermostat;
 
 import android.app.Activity;
-import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -32,7 +31,6 @@ public class RoomPage extends Activity {
     private TextView tvTempHeater;
     private SeekArc seekBar;
     private ToggleButton toggleButton;
-    private Button updateButton;
     private SeekArc seekArcTempHeater;
     private final float[] temp = new float[1];
     private final InputStream[] iss = new InputStream[2];
@@ -49,7 +47,7 @@ public class RoomPage extends Activity {
         tvDecDeg = (TextView) findViewById(R.id.tvDecDeg);
         tvTempHeater = (TextView) findViewById(R.id.tvTempHeater);
         toggleButton = (ToggleButton) findViewById(R.id.toggleHeaterOn);
-        updateButton = (Button) findViewById(R.id.updateButton);
+        Button updateButton = (Button) findViewById(R.id.updateButton);
 
         toggleButton.setTextOff("Eteins");
         toggleButton.setTextOn("Allumé");
@@ -137,10 +135,6 @@ public class RoomPage extends Activity {
         }).start();
 
         //Get the current temp from the heater to set progress bar
-
-        final InputStream[] iss = {null,null};
-        final String[] resultat = new String[1];
-        final String[] resultat1 = new String[1];
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -163,12 +157,7 @@ public class RoomPage extends Activity {
             resultat1[0] = inputStreamToString(iss[1]);
             iss[1].close();
             final boolean res;
-            if(resultat1[0].substring(0,1).equals("t")||resultat1[0].substring(0,1).equals("T")){
-                res = true;
-            }
-            else {
-                res = false;
-            }
+            res = resultat1[0].substring(0, 1).equals("t") || resultat1[0].substring(0, 1).equals("T");
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -213,7 +202,7 @@ public class RoomPage extends Activity {
     }
 
     public InputStream getISFromURL(URL url) throws IOException {
-        InputStream is = null;
+        InputStream is;
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setReadTimeout(10000 /* milliseconds */);
         conn.setConnectTimeout(15000 /* milliseconds */);
