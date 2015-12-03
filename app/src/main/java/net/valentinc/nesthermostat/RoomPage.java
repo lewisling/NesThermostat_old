@@ -1,6 +1,7 @@
 package net.valentinc.nesthermostat;
 
 import android.app.Activity;
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -9,7 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import net.valentinc.circularseekbar.CircularSeekBar;
+import net.valentinc.seekarc.SeekArc;
 import net.valentinc.server.Temperature;
 
 import java.io.IOException;
@@ -18,7 +19,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 
 /**
@@ -30,9 +30,14 @@ public class RoomPage extends Activity {
     private TextView tvDeg;
     private TextView tvDecDeg;
     private TextView tvTempHeater;
-    private CircularSeekBar seekBar;
+    private SeekArc seekBar;
     private ToggleButton toggleButton;
     private Button updateButton;
+    private SeekArc seekArcTempHeater;
+    private final float[] temp = new float[1];
+    private final InputStream[] iss = new InputStream[2];
+    private String[] resultat = new String[1];
+    private String[] resultat1 = new String[1];
 
 
     @Override
@@ -71,7 +76,7 @@ public class RoomPage extends Activity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(RoomPage.this,"Mise à jour Réussie", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(RoomPage.this, "Mise à jour Réussie", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
@@ -81,48 +86,53 @@ public class RoomPage extends Activity {
 
         final int[] save_progress = {0};
 
-        seekBar = (CircularSeekBar) findViewById(R.id.seekBar);
-        seekBar.setMax(30);
-        seekBar.setOnSeekBarChangeListener(new CircularSeekBar.OnCircularSeekBarChangeListener() {
+        seekBar = (SeekArc) findViewById(R.id.seekArc2);
+        seekBar.setArcRotation(-120);
+        seekBar.setSweepAngle(240);
+        seekBar.setTouchInSide(false);
+        seekBar.setmMax(30);
+
+        seekBar.setOnSeekArcChangeListener(new SeekArc.OnSeekArcChangeListener() {
             @Override
-            public void onProgressChanged(CircularSeekBar circularSeekBar, final int progress, boolean fromUser) {
-                if(fromUser)
-                    if(progress!= save_progress[0]){
+            public void onProgressChanged(SeekArc seekArc, final int progress, boolean fromUser) {
+                if (fromUser)
+                    if (progress != save_progress[0]) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 tvTempHeater.setText(String.valueOf(progress));
-                                save_progress[0] =progress;
+                                save_progress[0] = progress;
                             }
                         });
-                    }
-                else {
-                        save_progress[0]=progress;
+                    } else {
+                        save_progress[0] = progress;
                     }
             }
+
             @Override
-            public void onStopTrackingTouch(CircularSeekBar seekBar) {}
+            public void onStartTrackingTouch(SeekArc seekArc) {
+
+            }
+
             @Override
-            public void onStartTrackingTouch(CircularSeekBar seekBar) {}
+            public void onStopTrackingTouch(SeekArc seekArc) {
+
+            }
         });
+        seekBar.setProgressWidth(30);
+
+        seekArcTempHeater = (SeekArc) findViewById(R.id.seekArc);
+        seekArcTempHeater.setmMax(30);
+        seekArcTempHeater.setSweepAngle(240);
+        seekArcTempHeater.setArcRotation(-120);
+        seekArcTempHeater.setTouchInSide(true);
+        seekArcTempHeater.setEnabled(false);
 
         //Get the current temp from the sensor to set
-        final float[] temp = new float[1];
         new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    temp[0] = Temperature.getCurrentTemperature();
-                } catch (final IOException e) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(RoomPage.this, "Erreur Réseau " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-                UpdateIHM(String.valueOf((int) temp[0]), tvDeg);
-                UpdateIHM(String.valueOf((int)((temp[0]-((int) temp[0]))*10)), tvDecDeg);
+                setTemperature();
             }
         }).start();
 
@@ -134,28 +144,7 @@ public class RoomPage extends Activity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    iss[0] = getISFromURL(new URL("http://88.142.52.11/files/val_required_temp_file"));
-                    resultat[0] = inputStreamToString(iss[0]);
-                    iss[0].close();
-                    resultat[0] = resultat[0].substring(0, 2);
-                    UpdateIHM(resultat[0], tvTempHeater);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            seekBar.setProgress(Integer.parseInt(resultat[0]));
-                        }
-                    });
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (final IOException e) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(RoomPage.this, "Erreur Réseau " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
+                setRequieredTemp();
             }
         }).start();
 
@@ -163,35 +152,64 @@ public class RoomPage extends Activity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    iss[1] = getISFromURL(new URL("http://88.142.52.11/files/activated_file"));
-                    resultat1[0] = inputStreamToString(iss[1]);
-                    iss[1].close();
-                    final boolean res;
-                    if(resultat1[0].substring(0,1).equals("t")||resultat1[0].substring(0,1).equals("T")){
-                        res = true;
-                    }
-                    else {
-                        res = false;
-                    }
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            toggleButton.setChecked(res);
-                        }
-                    });
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (final IOException e) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(RoomPage.this, "Erreur Réseau " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
+                setSwitchOnOff();
             }
         }).start();
+    }
+
+    private void setSwitchOnOff() {
+        try {
+            iss[1] = getISFromURL(new URL("http://88.142.52.11/files/activated_file"));
+            resultat1[0] = inputStreamToString(iss[1]);
+            iss[1].close();
+            final boolean res;
+            if(resultat1[0].substring(0,1).equals("t")||resultat1[0].substring(0,1).equals("T")){
+                res = true;
+            }
+            else {
+                res = false;
+            }
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    toggleButton.setChecked(res);
+                }
+            });
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (final IOException e) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(RoomPage.this, "Erreur Réseau " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+
+    private void setRequieredTemp() {
+        try {
+            iss[0] = getISFromURL(new URL("http://88.142.52.11/files/val_required_temp_file"));
+            resultat[0] = inputStreamToString(iss[0]);
+            iss[0].close();
+            resultat[0] = resultat[0].substring(0, 2);
+            UpdateIHM(resultat[0], tvTempHeater);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    seekBar.setProgress(Integer.parseInt(resultat[0]));
+                }
+            });
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (final IOException e) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(RoomPage.this, "Erreur Réseau " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
     public InputStream getISFromURL(URL url) throws IOException {
@@ -227,5 +245,50 @@ public class RoomPage extends Activity {
                 t.setText(res);
             }
         });
+    }
+
+    public void setTemperature(){
+        try {
+            temp[0] = Temperature.getCurrentTemperature();
+        } catch (final IOException e) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(RoomPage.this, "Erreur Réseau " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                seekArcTempHeater.setProgress((int) temp[0]);
+            }
+        });
+        UpdateIHM(String.valueOf((int) temp[0]), tvDeg);
+        UpdateIHM(String.valueOf((int)((temp[0]-((int) temp[0]))*10)), tvDecDeg);
+    }
+    @Override
+    public void onResume() {
+        super.onResume();  // Always call the superclass method first
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                setTemperature();
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                setSwitchOnOff();
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                setRequieredTemp();
+            }
+        }).start();
+
     }
 }
