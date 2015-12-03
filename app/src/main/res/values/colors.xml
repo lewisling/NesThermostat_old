@@ -1,3 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="progress_gray">#FFD8D8D8</color>
+    <color name="progress_gray_dark">#FF383838</color>
+    <color name="red">#ffe2231a</color>
+    <color name="dark_red">#ff510209</color>
+    <color name="white">#ffffffff</color>
 </resources>
