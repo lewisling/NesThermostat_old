@@ -16,13 +16,6 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
     public void testSendCommand() {
         System.out.println("sendCommand");
 
-        /**
-         * YOU MUST CHANGE THE FOLLOWING
-         * FILE_NAME: A FILE IN THE DIRECTORY
-         * USER: LOGIN USER NAME
-         * PASSWORD: PASSWORD FOR THAT USER
-         * HOST: IP ADDRESS OF THE SSH SERVER
-         **/
         String command = "ls FILE_NAME";
         String userName = "USER";
         String password = "PASSWORD";
