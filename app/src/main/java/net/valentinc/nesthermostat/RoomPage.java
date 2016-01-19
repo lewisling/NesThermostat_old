@@ -39,6 +39,10 @@ public class RoomPage extends Activity {
     private String[] resultat1 = new String[1];
 
     private SSHManager instance;
+    private String userName ="";
+    private String password ="";
+    private String connectionIP ="";
+    private String command = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
