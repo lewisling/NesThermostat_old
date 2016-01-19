@@ -11,6 +11,7 @@ import android.widget.ToggleButton;
 
 import net.valentinc.seekarc.SeekArc;
 import net.valentinc.server.Temperature;
+import net.valentinc.ssh.SSHManager;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +38,7 @@ public class RoomPage extends Activity {
     private String[] resultat = new String[1];
     private String[] resultat1 = new String[1];
 
+    private SSHManager instance;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +54,9 @@ public class RoomPage extends Activity {
         toggleButton.setTextOff("Eteins");
         toggleButton.setTextOn("Allumé");
 
+        //TODO : check if connection lost
+        instance = new SSHManager(userName, password, connectionIP, "");
+
         updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -59,24 +64,35 @@ public class RoomPage extends Activity {
                     @Override
                     public void run() {
                         //Call heater function
-                        try {
-                            getISFromURL(new URL("http://***REMOVED***/android/android_heater.php?temp=" + tvTempHeater.getText() + "&activated=" + toggleButton.isChecked()));
-                        } catch (MalformedURLException e) {
-                            e.printStackTrace();
-                        } catch (final IOException e) {
+                        final String errorMessage = instance.connect();
+
+                        if (errorMessage != null) {
+                            System.out.println(errorMessage);
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(RoomPage.this, "Erreur Réseau " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(RoomPage.this, "Erreur : "+errorMessage, Toast.LENGTH_SHORT).show();
                                 }
                             });
                         }
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(RoomPage.this, "Mise à jour Réussie", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        final String result = instance.sendCommand(command + tvTempHeater.getText() + " " + toggleButton.isChecked() );
+                        if(result.contains("Android_Heater.py") && result.contains("envois du signal")) { //TODO
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(RoomPage.this, "Mise à jour Réussie", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                        else {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(RoomPage.this, "Erreur : "+result, Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                        instance.close();
                     }
                 }).start();
             }
