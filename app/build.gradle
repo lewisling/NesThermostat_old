@@ -26,4 +26,6 @@ dependencies {
     com***REMOVED***le fileTree(include: ['*.jar'], dir: 'libs')
     testCom***REMOVED***le 'junit:junit:4.12'
     com***REMOVED***le 'com.android.support:support-v4:21.0.3'
+    com***REMOVED***le 'com.jcraft:jsch:0.1.53'
+    androidTestCom***REMOVED***le 'junit:junit:4.12'
 }
