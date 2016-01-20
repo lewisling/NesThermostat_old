@@ -7,12 +7,18 @@ The android application to manage the Heater on the local server
 - A first Page which contain all the rooms
 - An activty by room, which allow to turn on/off the heater in the room and to fix the requiered temp. 
 
+### Update
+Use SSH instead of php request to secure the connection and avoid externals attacks.
+
 Note : The server will manage the heater to work arround this temperature.
 
 ##Tests
 ###Unit Tests
 
 ###Functionnal Tests
+Verify the connection by SSH throw the JSch library. 
+- Connect to the remote server, launch command and compare the result with the known right value.
+
 
 #Licence
 
