@@ -41,6 +41,7 @@ public class RoomPage extends Activity {
     private String[] resultat1 = new String[1];
     private Timer tUpdateTemperature;
     private TimerTask tUpdateTemperatureTask;
+    private Boolean isRunning;
 
     private SSHManager instance;
     private String userName ="";
@@ -179,18 +180,41 @@ public class RoomPage extends Activity {
                 setSwitchOnOff();
             }
         }).start();
+
+        start_timer();
+        isRunning = false;
+
+    }
+
+    private void start_timer() {
+        tUpdateTemperature = new Timer("Update Temperature");
+        tUpdateTemperatureTask = new TimerTask() {
+            @Override
+            public void run() {
+                setTemperature();
+            }
+        };
+        tUpdateTemperature.schedule(tUpdateTemperatureTask,1000,5000);
+        isRunning = true;
     }
 
     @Override
     protected void onPause(){
         super.onPause();
-        tUpdateTemperatureTask.cancel();
+        if(isRunning) {
+            tUpdateTemperatureTask.cancel();
+            isRunning = false;
+            Log.d("onPause","isRunning false");
+        }
     }
 
     @Override
     protected void onResume(){
         super.onResume();
-        tUpdateTemperatureTask.run();
+        if(!isRunning) {
+            start_timer();
+            Log.d("onPause","isRunning true");
+        }
 
         new Thread(new Runnable() {
             @Override
