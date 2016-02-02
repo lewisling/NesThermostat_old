@@ -1,20 +1,78 @@
 package net.valentinc.openweathermap;
 
+import android.os.AsyncTask;
+
 import org.codehaus.jackson.map.JsonMap***REMOVED***ngException;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by ValentinC on 27/01/2016.
  */
 public abstract class JsonParser {
-private static String json = "{\"coord\":{\"lon\":-0.42,\"lat\":43.33},\"weather\":[{\"id\":701,\"main\":\"Mist\",\"description\":\"brume\",\"icon\":\"50n\"}],\"base\":\"cmc stations\",\"main\":{\"temp\":8.69,\"pressure\":1024,\"humidity\":93,\"temp_min\":6,\"temp_max\":11},\"wind\":{\"speed\":2.1,\"deg\":80},\"clouds\":{\"all\":90},\"dt\":1453926600,\"sys\":{\"type\":1,\"id\":5533,\"message\":0.0038,\"country\":\"FR\",\"sunrise\":1453879340,\"sunset\":1453914428},\"id\":3001617,\"name\":\"Lescar\",\"cod\":200}";
+    private static String json;
+    private static String BASE_URL ="http://a***REMOVED***.openweathermap.org/data/2.5/weather?q=Lescar,fr&units=metric&lang=fr&ap***REMOVED***d=44db6a862fba0b067b1930da0d769e98";
 
-    public static Openweathermap jsonToPOJO() throws IOException, JsonMap***REMOVED***ngException {
+    public static Openweathermap jsonToPOJO() throws IOException, ExecutionException, InterruptedException {
+        JSONWeatherTask task = new JSONWeatherTask();
+        task.execute().get();
+
+        if(json == null)
+            return null;
         Openweathermap o;
         ObjectMapper mapper = new ObjectMapper();
         o = mapper.readValue(json,Openweathermap.class);
         return o;
+    }
+
+    public static String getWeatherData() {
+        HttpURLConnection con = null ;
+        InputStream is = null;
+
+        try {
+            con = (HttpURLConnection) ( new URL(BASE_URL)).openConnection();
+            con.setRequestMethod("GET");
+            con.setDoInput(true);
+            con.setDoOutput(true);
+            con.connect();
+
+            // Let's read the response
+            StringBuffer buffer = new StringBuffer();
+            is = con.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            String line = null;
+            while (  (line = br.readLine()) != null )
+                buffer.append(line + "\r\n");
+
+            is.close();
+            con.disconnect();
+            return buffer.toString();
+        }
+        catch(Throwable t) {
+            t.printStackTrace();
+        }
+        finally {
+            try { is.close(); } catch(Throwable t) {}
+            try { con.disconnect(); } catch(Throwable t) {}
+        }
+
+        return null;
+
+    }
+
+    private static class JSONWeatherTask extends AsyncTask<String, Void, Void> {
+
+        @Override
+        protected Void doInBackground(String... params) {
+            json = getWeatherData();
+            return null;
+        }
     }
 }

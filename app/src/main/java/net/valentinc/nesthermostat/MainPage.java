@@ -3,6 +3,7 @@ package net.valentinc.nesthermostat;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -16,6 +17,7 @@ import net.valentinc.server.Temperature;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -29,6 +31,7 @@ public class MainPage extends Activity {
     private Timer tUpdateTemperature;
     private TimerTask tUpdateTemperatureTask;
     private Boolean isRunning;
+    private Time last_try;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +50,9 @@ public class MainPage extends Activity {
             }
         });
         isRunning = false;
+
+        last_try = new Time();
+        last_try.setToNow();
         //Get the current temp from the sensor to put it inside the 2 textviews
         start_timer();
 
@@ -54,25 +60,39 @@ public class MainPage extends Activity {
             @Override
             public void run() {
                 setTemperature();
+                setWeather();
             }
         }).start();
-                //TODO Get the current temp from the weather to the textview under the logo
-                //http://www.survivingwithandroid.com/2013/05/build-weather-app-json-http-android.html
+    }
+
+    private void setWeather() {
         Openweathermap o = null;
         try {
             o = JsonParser.jsonToPOJO();
         } catch (IOException e) {
-          //  Toast.makeText(this,"Error while using jsonToPojo : " +e,Toast.LENGTH_LONG);
-            tvMeteo.setText("Error while using jsonToPojo : " + e);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    tvMeteo.setText("Impossible de récupérer les infos.");
+                }
+            });
             Log.d("OpenWeatherMap : ", e.toString());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
         }
-        //Toast.makeText(this,"JsonToPojo : " + o.getMain().getHumidity() ,Toast.LENGTH_LONG);
         if(o!=null) {
-            String meteo_text = o.getName()
+            final String meteo_text = o.getName()
                     + " - " +
                     o.getMain().getTemp() + "°C - " +
                     o.getWeather().get(0).getDescription();
-            tvMeteo.setText(meteo_text);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    tvMeteo.setText(meteo_text);
+                }
+            });
         }
     }
 
@@ -82,6 +102,7 @@ public class MainPage extends Activity {
             @Override
             public void run() {
                 setTemperature();
+                setWeather();
             }
         };
         tUpdateTemperature.schedule(tUpdateTemperatureTask,1000,5000);
@@ -110,18 +131,12 @@ public class MainPage extends Activity {
     private void setTemperature() {
         final float[] temp = new float[1];
         try {
-            Log.d("DEBUG", "setTemperature in progress from RoomPage");
             temp[0] = Temperature.getCurrentTemperature();
+            UpdateIHM(String.valueOf((int) temp[0]), tvDeg);
+            UpdateIHM(String.valueOf((int)((temp[0]-((int) temp[0]))*10)), tvDecDeg);
         } catch (IOException e) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(getApplicationContext(), "Erreur Réseau", Toast.LENGTH_SHORT).show();
-                }
-            });
+            showError("Erreur Réseau ");
         }
-        UpdateIHM(String.valueOf((int) temp[0]), tvDeg);
-        UpdateIHM(String.valueOf((int)((temp[0]-((int) temp[0]))*10)), tvDecDeg);
     }
 
     public void UpdateIHM(final String res, final TextView t) {
@@ -131,5 +146,19 @@ public class MainPage extends Activity {
                 t.setText(res);
             }
         });
+    }
+
+    private void showError(final String msg){
+        Time now = new Time();
+        now.setToNow();
+        if(Time.compare(now,last_try)>10) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(MainPage.this, msg, Toast.LENGTH_SHORT).show();
+                }
+            });
+            last_try.setToNow();
+        }
     }
 }

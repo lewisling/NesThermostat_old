@@ -1,19 +1,22 @@
 
 package net.valentinc.openweathermap;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Generated;
 
-@Generated("org.jsonschema2pojo")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Openweathermap {
 
     private Coord coord;
     private List<Weather> weather = new ArrayList<Weather>();
     private String base;
     private Main main;
+    private Integer visibility;
     private Wind wind;
     private Clouds clouds;
     private Integer dt;
@@ -220,6 +223,23 @@ public class Openweathermap {
     public void setCod(Integer cod) {
         this.cod = cod;
     }
+    /**
+     *
+     * @return
+     *     The visibility
+     */
+    public Integer getVisibility() {
+        return visibility;
+    }
+
+    /**
+     *
+     * @param visibility
+     *     The visibility
+     */
+    public void setVisibility(Integer visibility) {
+        this.visibility = visibility;
+    }
 
     public Map<String, Object> getAdditionalProperties() {
         return this.additionalProperties;
@@ -228,5 +248,4 @@ public class Openweathermap {
     public void setAdditionalProperty(String name, Object value) {
         this.additionalProperties.put(name, value);
     }
-
 }

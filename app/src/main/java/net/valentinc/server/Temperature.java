@@ -26,7 +26,6 @@ public abstract class Temperature {
             // Starts the query
             conn.connect();
             int response = conn.getResponseCode();
-            Log.d("RoomPage", "The response is: " + response);
             if (response == 200) {
                 is = conn.getInputStream();
                 // Convert the InputStream into a string

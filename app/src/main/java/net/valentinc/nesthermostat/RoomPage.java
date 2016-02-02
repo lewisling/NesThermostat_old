@@ -2,6 +2,7 @@ package net.valentinc.nesthermostat;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -42,6 +43,7 @@ public class RoomPage extends Activity {
     private Timer tUpdateTemperature;
     private TimerTask tUpdateTemperatureTask;
     private Boolean isRunning;
+    private Time last_try;
 
     private SSHManager instance;
     private String userName ="";
@@ -76,13 +78,8 @@ public class RoomPage extends Activity {
                         final String errorMessage = instance.connect();
 
                         if (errorMessage != null) {
-                            System.out.println(errorMessage);
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(RoomPage.this, "Erreur : " + errorMessage, Toast.LENGTH_SHORT).show();
-                                }
-                            });
+                            Log.d("onClick",errorMessage);
+                            showError("Erreur Réseau");
                         }
                         final String result = instance.sendCommand(command + tvTempHeater.getText() + " " + toggleButton.isChecked());
                         if (result.contains("Android_Heater.py") && result.contains("envois du signal")) { //TODO
@@ -93,12 +90,7 @@ public class RoomPage extends Activity {
                                 }
                             });
                         } else {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(RoomPage.this, "Erreur : " + result, Toast.LENGTH_SHORT).show();
-                                }
-                            });
+                            showError("Erreur Réseau");
                         }
                         instance.close();
                     }
@@ -149,6 +141,9 @@ public class RoomPage extends Activity {
         seekArcTempHeater.setArcRotation(-120);
         seekArcTempHeater.setTouchInSide(true);
         seekArcTempHeater.setEnabled(false);
+
+        last_try = new Time();
+        last_try.setToNow();
 
         //Get the current temp from the sensor to set
         new Thread(new Runnable() {
@@ -252,12 +247,7 @@ public class RoomPage extends Activity {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (final IOException e) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(RoomPage.this, "Erreur Réseau " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
+            showError("Erreur Réseau");
         }
     }
 
@@ -277,12 +267,7 @@ public class RoomPage extends Activity {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (final IOException e) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(RoomPage.this, "Erreur Réseau " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
+            showError("Erreur Réseau");
         }
     }
 
@@ -296,7 +281,6 @@ public class RoomPage extends Activity {
         // Starts the query
         conn.connect();
         int response = conn.getResponseCode();
-        Log.d("RoomPage", "The response is: " + response);
         if (response == 200) {
             is = conn.getInputStream();
         }
@@ -323,23 +307,31 @@ public class RoomPage extends Activity {
 
     public void setTemperature(){
         try {
-            Log.d("DEBUG","setTemperature in progress from RoomPage");
             temp[0] = Temperature.getCurrentTemperature();
-        } catch (final IOException e) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(RoomPage.this, "Erreur Réseau " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    seekArcTempHeater.setProgress((int) temp[0]);
                 }
             });
+            UpdateIHM(String.valueOf((int) temp[0]), tvDeg);
+            UpdateIHM(String.valueOf((int) ((temp[0] - ((int) temp[0])) * 10)), tvDecDeg);
+        } catch (final IOException e) {
+            showError("Erreur Réseau ");
         }
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                seekArcTempHeater.setProgress((int) temp[0]);
-            }
-        });
-        UpdateIHM(String.valueOf((int) temp[0]), tvDeg);
-        UpdateIHM(String.valueOf((int) ((temp[0] - ((int) temp[0])) * 10)), tvDecDeg);
+    }
+
+    private void showError(final String msg){
+        Time now = new Time();
+        now.setToNow();
+        if(Time.compare(now,last_try)>10) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(RoomPage.this, msg, Toast.LENGTH_SHORT).show();
+                }
+            });
+            last_try.setToNow();
+        }
     }
 }

@@ -1,11 +1,12 @@
 
 package net.valentinc.openweathermap;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Generated;
 
-@Generated("org.jsonschema2pojo")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Wind {
 
     private Double speed;
