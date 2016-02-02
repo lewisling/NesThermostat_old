@@ -1,14 +1,17 @@
 # NesThermostat [![Build Status](https://travis-ci.org/vchatela/NesThermostat.svg?branch=master)](https://travis-ci.org/vchatela/NesThermostat)
-The android application to manage the Heater on the local server
+The android application to manage the Heater on the local server (at home)
 
-![Screenshot](https://cdn.rawgit.com/vchatela/NesThermostat/master/raw/Screenshot_2015-12-03-15-09-08.png)
+![Screenshot](http://s21.postimg.org/jkomfcfvr/Screenshot_2015_12_03_15_09_08.png)
 
 ## Features
 - A first Page which contain all the rooms
-- An activty by room, which allow to turn on/off the heater in the room and to fix the requiered temp. 
+- An activty by room, which allow to turn on/off the heater in the room and fix the requiered temp. 
 
 ### Update
-Use SSH instead of php request to secure the connection and avoid externals attacks.
+- Use SSH instead of php request to secure the connection and avoid externals attacks.
+- Add POJO management to parse Json from openweatherapp API to get weather for the first page
+- Use Timer to update all the IHM every 5 seconds
+
 
 Note : The server will manage the heater to work arround this temperature.
 
