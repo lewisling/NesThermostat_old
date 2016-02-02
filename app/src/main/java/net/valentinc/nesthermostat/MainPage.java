@@ -3,6 +3,7 @@ package net.valentinc.nesthermostat;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -11,6 +12,8 @@ import android.widget.Toast;
 import net.valentinc.server.Temperature;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -20,6 +23,8 @@ public class MainPage extends Activity {
 
     private TextView tvDeg;
     private TextView tvDecDeg;
+    private Timer tUpdateTemperature;
+    private TimerTask tUpdateTemperatureTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,26 +43,51 @@ public class MainPage extends Activity {
         });
 
         //Get the current temp from the sensor to put it inside the 2 textviews
-        final float[] temp = new float[1];
+        tUpdateTemperature = new Timer("Update Temperature");
+        tUpdateTemperatureTask = new TimerTask() {
+            @Override
+            public void run() {
+                setTemperature();
+            }
+        };
+        tUpdateTemperature.schedule(tUpdateTemperatureTask,1000,5000);
+
         new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    temp[0] = Temperature.getCurrentTemperature();
-                } catch (IOException e) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(getApplicationContext(), "Erreur Réseau", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-                UpdateIHM(String.valueOf((int) temp[0]), tvDeg);
-                UpdateIHM(String.valueOf((int)((temp[0]-((int) temp[0]))*10)), tvDecDeg);
+                setTemperature();
             }
         }).start();
-        //Get the current temp from the weather to the textview under the logo
-//http://www.survivingwithandroid.com/2013/05/build-weather-app-json-http-android.html
+                //TODO Get the current temp from the weather to the textview under the logo
+                //http://www.survivingwithandroid.com/2013/05/build-weather-app-json-http-android.html
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+        tUpdateTemperatureTask.cancel();
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        tUpdateTemperatureTask.run();
+    }
+
+    private void setTemperature() {
+        final float[] temp = new float[1];
+        try {
+            Log.d("DEBUG", "setTemperature in progress from RoomPage");
+            temp[0] = Temperature.getCurrentTemperature();
+        } catch (IOException e) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getApplicationContext(), "Erreur Réseau", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+        UpdateIHM(String.valueOf((int) temp[0]), tvDeg);
+        UpdateIHM(String.valueOf((int)((temp[0]-((int) temp[0]))*10)), tvDecDeg);
     }
 
     public void UpdateIHM(final String res, final TextView t) {

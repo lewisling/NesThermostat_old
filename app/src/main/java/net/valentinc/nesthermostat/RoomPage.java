@@ -20,6 +20,8 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by ValentinC on 19/11/2015.
@@ -37,6 +39,8 @@ public class RoomPage extends Activity {
     private final InputStream[] iss = new InputStream[2];
     private String[] resultat = new String[1];
     private String[] resultat1 = new String[1];
+    private Timer tUpdateTemperature;
+    private TimerTask tUpdateTemperatureTask;
 
     private SSHManager instance;
     private String userName ="";
@@ -75,24 +79,23 @@ public class RoomPage extends Activity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(RoomPage.this, "Erreur : "+errorMessage, Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(RoomPage.this, "Erreur : " + errorMessage, Toast.LENGTH_SHORT).show();
                                 }
                             });
                         }
-                        final String result = instance.sendCommand(command + tvTempHeater.getText() + " " + toggleButton.isChecked() );
-                        if(result.contains("Android_Heater.py") && result.contains("envois du signal")) { //TODO
+                        final String result = instance.sendCommand(command + tvTempHeater.getText() + " " + toggleButton.isChecked());
+                        if (result.contains("Android_Heater.py") && result.contains("envois du signal")) { //TODO
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     Toast.makeText(RoomPage.this, "Mise à jour Réussie", Toast.LENGTH_SHORT).show();
                                 }
                             });
-                        }
-                        else {
+                        } else {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(RoomPage.this, "Erreur : "+result, Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(RoomPage.this, "Erreur : " + result, Toast.LENGTH_SHORT).show();
                                 }
                             });
                         }
@@ -154,6 +157,14 @@ public class RoomPage extends Activity {
             }
         }).start();
 
+        tUpdateTemperature = new Timer("Update Temperature");
+        tUpdateTemperatureTask = new TimerTask() {
+            @Override
+            public void run() {
+                setTemperature();
+            }
+        };
+        tUpdateTemperature.schedule(tUpdateTemperatureTask,1000,5000);
         //Get the current temp from the heater to set progress bar
         new Thread(new Runnable() {
             @Override
@@ -161,12 +172,42 @@ public class RoomPage extends Activity {
                 setRequieredTemp();
             }
         }).start();
-
         // Get the on/off of the heater to instantiate the switch
         new Thread(new Runnable() {
             @Override
             public void run() {
                 setSwitchOnOff();
+            }
+        }).start();
+    }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+        tUpdateTemperatureTask.cancel();
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        tUpdateTemperatureTask.run();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                setTemperature();
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                setSwitchOnOff();
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                setRequieredTemp();
             }
         }).start();
     }
@@ -258,6 +299,7 @@ public class RoomPage extends Activity {
 
     public void setTemperature(){
         try {
+            Log.d("DEBUG","setTemperature in progress from RoomPage");
             temp[0] = Temperature.getCurrentTemperature();
         } catch (final IOException e) {
             runOnUiThread(new Runnable() {
@@ -274,30 +316,6 @@ public class RoomPage extends Activity {
             }
         });
         UpdateIHM(String.valueOf((int) temp[0]), tvDeg);
-        UpdateIHM(String.valueOf((int)((temp[0]-((int) temp[0]))*10)), tvDecDeg);
-    }
-    @Override
-    public void onResume() {
-        super.onResume();  // Always call the superclass method first
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                setTemperature();
-            }
-        }).start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                setSwitchOnOff();
-            }
-        }).start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                setRequieredTemp();
-            }
-        }).start();
-
+        UpdateIHM(String.valueOf((int) ((temp[0] - ((int) temp[0])) * 10)), tvDecDeg);
     }
 }
