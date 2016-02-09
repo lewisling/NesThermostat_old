@@ -5,15 +5,14 @@ The android application to manage the Heater on the local server (at home)
 
 ## Features
 - A first Page which contain all the rooms
-- An activty by room, which allow to turn on/off the heater in the room and fix the requiered temp. 
+- An activity by room, which allow to turn on/off the heater in the room and fix the required temp. 
 
 ### Update
 - Use SSH instead of php request to secure the connection and avoid externals attacks.
 - Add POJO management to parse Json from openweatherapp API to get weather for the first page
 - Use Timer to update all the IHM every 5 seconds
 
-
-Note : The server will manage the heater to work arround this temperature.
+Note : The server will manage the heater to work around this temperature.
 
 ##Tests
 ###Unit Tests
