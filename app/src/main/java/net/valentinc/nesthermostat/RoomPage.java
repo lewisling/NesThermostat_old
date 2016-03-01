@@ -1,14 +1,16 @@
 package net.valentinc.nesthermostat;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.format.Time;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
+
+import com.beardedhen.androidbootstrap.TypefaceProvider;
 
 import net.valentinc.seekarc.SeekArc;
 import net.valentinc.server.Temperature;
@@ -34,36 +36,78 @@ public class RoomPage extends Activity {
     private TextView tvDecDeg;
     private TextView tvTempHeater;
     private SeekArc seekBar;
-    private ToggleButton toggleButton;
+    private Switch switchButton;
     private SeekArc seekArcTempHeater;
     private final float[] temp = new float[1];
     private final InputStream[] iss = new InputStream[2];
     private String[] resultat = new String[1];
     private String[] resultat1 = new String[1];
     private Timer tUpdateTemperature;
+    private TimerTask tUpdateIHM;
     private TimerTask tUpdateTemperatureTask;
+    private com.beardedhen.androidbootstrap.BootstrapProgressBar progressBar;
     private Boolean isRunning;
     private Time last_try;
 
+    private final static String APP    = "NesThermostat";
+    private final static String LAST_UPDATE    = "last_update";
+
+    private long last_update;
+    private TextView tvLastUpdate;
+    private SharedPreferences prefs;
+    private SharedPreferences.Editor editor;
+
     private SSHManager instance;
-    private String userName ="";
-    private String password ="";
-    private String connectionIP ="";
-    private String command = "";
+    private final static String userName = "***REMOVED***";
+    private final static String password = "***REMOVED***";
+    private final static String connectionIP = "***REMOVED***";
+    private final static String command = "python /home/***REMOVED***/Script_python/android_heater.py ";
+    private final static Double minuteToDeg = 2.15/150;
+    private TextView tvRemaningTime;
+
+
+    public static String formatHoursAndMinutes(int totalMinutes) {
+        String minutes = Integer.toString(totalMinutes % 60);
+        minutes = minutes.length() == 1 ? "0" + minutes : minutes;
+        if(totalMinutes/60>=1)
+            return (totalMinutes / 60) + "h" + minutes;
+        else
+            return String.valueOf(totalMinutes) + " min";
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        TypefaceProvider.registerDefaultIconSets();
 
         setContentView(R.layout.activity_room_page);
         tvDeg = (TextView) findViewById(R.id.tvDeg);
         tvDecDeg = (TextView) findViewById(R.id.tvDecDeg);
         tvTempHeater = (TextView) findViewById(R.id.tvTempHeater);
-        toggleButton = (ToggleButton) findViewById(R.id.toggleHeaterOn);
-        Button updateButton = (Button) findViewById(R.id.updateButton);
+        switchButton = (Switch) findViewById(R.id.toggleHeaterOn);
+        tvLastUpdate = (TextView) findViewById(R.id.textViewLastUpdate);
+        progressBar = (com.beardedhen.androidbootstrap.BootstrapProgressBar) findViewById(R.id.progressBar);
+        progressBar.setProgress(0);
+        com.beardedhen.androidbootstrap.BootstrapButton updateButton = (com.beardedhen.androidbootstrap.BootstrapButton) findViewById(R.id.updateButton);
+        tvRemaningTime = (TextView) findViewById(R.id.textViewRemainingTime);
+        switchButton.setTextOff("Eteins");
+        switchButton.setTextOn("Allumé");
 
-        toggleButton.setTextOff("Eteins");
-        toggleButton.setTextOn("Allumé");
+
+        prefs = getApplicationContext().getSharedPreferences(APP,0);
+        editor = prefs.edit();
+
+        last_update = prefs.getLong(LAST_UPDATE, 0);
+        if(last_update ==0){
+            tvLastUpdate.setText("0 s");
+            last_update = System.currentTimeMillis();
+            editor.putLong(LAST_UPDATE,last_update);
+            editor.commit();
+        }
+        else {
+            Long remaining = System.currentTimeMillis()-last_update;
+            tvLastUpdate.setText(remaining/1000 + " s");
+        }
 
         //TODO : check if connection lost
         instance = new SSHManager(userName, password, connectionIP, "");
@@ -75,20 +119,35 @@ public class RoomPage extends Activity {
                     @Override
                     public void run() {
                         //Call heater function
+                        setProgressBarUI(5);
                         final String errorMessage = instance.connect();
+                        setProgressBarUI(15);
 
                         if (errorMessage != null) {
                             Log.d("onClick",errorMessage);
                             showError("Erreur Réseau");
                         }
-                        final String result = instance.sendCommand(command + tvTempHeater.getText() + " " + toggleButton.isChecked());
-                        if (result.contains("Android_Heater.py") && result.contains("envois du signal")) { //TODO
+                        setProgressBarUI(30);
+                        final String result = instance.sendCommand(command + tvTempHeater.getText() + " " + switchButton.isChecked());
+                        if (result != null && result.contains("Android_Heater.py") && result.contains("envois du signal")) { //TODO
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     Toast.makeText(RoomPage.this, "Mise à jour Réussie", Toast.LENGTH_SHORT).show();
+                                    progressBar.setProgress(100);
                                 }
                             });
+
+                            last_update = prefs.getLong(LAST_UPDATE, 0);
+                            editor.putLong(LAST_UPDATE,System.currentTimeMillis());
+                            editor.commit();
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    tvLastUpdate.setText("0 s");
+                                }
+                            });
+
                         } else {
                             showError("Erreur Réseau");
                         }
@@ -181,6 +240,15 @@ public class RoomPage extends Activity {
 
     }
 
+    private void setProgressBarUI(final int i) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                progressBar.setProgress(i);
+            }
+        });
+    }
+
     private void start_timer() {
         tUpdateTemperature = new Timer("Update Temperature");
         tUpdateTemperatureTask = new TimerTask() {
@@ -189,8 +257,25 @@ public class RoomPage extends Activity {
                 setTemperature();
             }
         };
+        tUpdateIHM = new TimerTask(){
+            @Override
+            public void run() {
+                updateRemaingTime();
+            }
+        };
         tUpdateTemperature.schedule(tUpdateTemperatureTask,1000,5000);
+        tUpdateTemperature.schedule(tUpdateIHM,1000,1000);
         isRunning = true;
+    }
+
+    private void updateRemaingTime() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                last_update = prefs.getLong(LAST_UPDATE, 0);
+                tvLastUpdate.setText((System.currentTimeMillis()-last_update)/1000 + " s");
+            }
+        });
     }
 
     @Override
@@ -198,6 +283,7 @@ public class RoomPage extends Activity {
         super.onPause();
         if(isRunning) {
             tUpdateTemperatureTask.cancel();
+            tUpdateIHM.cancel();
             isRunning = false;
             Log.d("onPause","isRunning false");
         }
@@ -241,7 +327,7 @@ public class RoomPage extends Activity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    toggleButton.setChecked(res);
+                    switchButton.setChecked(res);
                 }
             });
         } catch (MalformedURLException e) {
@@ -316,6 +402,7 @@ public class RoomPage extends Activity {
             });
             UpdateIHM(String.valueOf((int) temp[0]), tvDeg);
             UpdateIHM(String.valueOf((int) ((temp[0] - ((int) temp[0])) * 10)), tvDecDeg);
+            UpdateIHM(formatHoursAndMinutes((int)((Float.parseFloat(tvTempHeater.getText().toString())-temp[0])/minuteToDeg)),tvRemaningTime);
         } catch (final IOException e) {
             showError("Erreur Réseau ");
         }

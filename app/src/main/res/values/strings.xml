@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">NesThermostat</string>
+    <string name="heaterOn">Allumé</string>
+    <string name="heaterOff">Eteins</string>
 </resources>

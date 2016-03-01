@@ -16,10 +16,10 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
     public void testSendCommand() {
         System.out.println("sendCommand");
 
-        String command = "ls FILE_NAME";
-        String userName = "USER";
-        String password = "PASSWORD";
-        String connectionIP = "HOST";
+        String command = "ls ~/temperature";
+        String userName = "***REMOVED***";
+        String password = "***REMOVED***";
+        String connectionIP = "***REMOVED***";
         SSHManager instance = new SSHManager(userName, password, connectionIP, "");
         String errorMessage = instance.connect();
 
@@ -28,7 +28,7 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
             fail();
         }
 
-        String expResult = "FILE_NAME\n";
+        String expResult = "/home/***REMOVED***/temperature\n";
         // call sendCommand for each command and the output
         //(without prompts) is returned
         String result = instance.sendCommand(command);

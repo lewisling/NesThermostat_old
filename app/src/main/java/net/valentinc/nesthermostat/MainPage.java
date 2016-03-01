@@ -2,6 +2,7 @@ package net.valentinc.nesthermostat;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.format.Time;
 import android.util.Log;
@@ -9,6 +10,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.beardedhen.androidbootstrap.TypefaceProvider;
 
 import net.valentinc.openweathermap.JsonParser;
 import net.valentinc.openweathermap.Openweathermap;
@@ -36,6 +39,7 @@ public class MainPage extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        TypefaceProvider.registerDefaultIconSets();
 
         setContentView(R.layout.activity_main_page);
         tvDeg = (TextView) findViewById(R.id.tvDeg);
