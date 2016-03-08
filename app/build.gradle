@@ -37,4 +37,5 @@ dependencies {
     compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
     compile 'org.glassfish.main:javax.annotation:4.0-b33'
     compile 'com.beardedhen:androidbootstrap:2.1.0'
+	compile 'net.danlew:android.joda:2.9.2'
 }

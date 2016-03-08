@@ -7,4 +7,6 @@
 	<string name="minutebydegree">minutebydegree</string>
 	<string name="last_update">last_update</string>
 	<string name="date_last_update">date_lastupdate</string>
+	<string name="URL_PHP_MINUTEDEGREE">
+</string>
 </resources>
