@@ -2,7 +2,7 @@ package net.valentinc.openweathermap;
 
 import android.os.AsyncTask;
 
-import org.codehaus.jackson.map.JsonMap***REMOVED***ngException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.BufferedReader;
@@ -18,7 +18,7 @@ import java.util.concurrent.ExecutionException;
  */
 public abstract class JsonParser {
     private static String json;
-    private static String BASE_URL ="http://a***REMOVED***.openweathermap.org/data/2.5/weather?q=Lescar,fr&units=metric&lang=fr&ap***REMOVED***d=44db6a862fba0b067b1930da0d769e98";
+    private static String BASE_URL ="http://apipenweathermap.org/data/2.5/weather?q=Lescar,fr&units=metric&lang=fr&apid=44db6a862fba0b067b1930da0d769e98";
 
     public static Openweathermap jsonToPOJO() throws IOException, ExecutionException, InterruptedException {
         JSONWeatherTask task = new JSONWeatherTask();
