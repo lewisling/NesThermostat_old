@@ -123,7 +123,7 @@
         android:layout_toEndOf="@+id/updateButton" />
 
     <TextView
-        android:id="@+id/textView4"
+        android:id="@+id/tvTempsRestant"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Temps restant"

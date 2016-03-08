@@ -67,6 +67,7 @@ public class RoomPage extends Activity {
     private final static String connectionIP = "***REMOVED***";
     private final static String command = "python /home/***REMOVED***/Script_python/android_heater.py ";
     private final static Double minuteToDeg = 2.15/150;
+    private float minuteToDeg;
     private TextView tvRemaningTime;
     private TextView tvTempsRestant;
 
