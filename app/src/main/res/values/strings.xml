@@ -1,5 +1,10 @@
 <resources>
     <string name="app_name">NesThermostat</string>
-    <string name="heaterOn">Allumé</string>
-    <string name="heaterOff">Eteins</string>
+	<string name="heaterOn">Allumé</string>
+	<string name="heaterOff">Eteins</string>
+	<string name="errorInfos">Impossible de récupérer les infos.</string>
+	<string name="shared_prefs">prefs0</string>
+	<string name="minutebydegree">minutebydegree</string>
+	<string name="last_update">last_update</string>
+	<string name="date_last_update">date_lastupdate</string>
 </resources>

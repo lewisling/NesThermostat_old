@@ -1,6 +1,7 @@
 package net.valentinc.nesthermostat;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -17,7 +18,24 @@ import net.valentinc.openweathermap.JsonParser;
 import net.valentinc.openweathermap.Openweathermap;
 import net.valentinc.server.Temperature;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
@@ -28,20 +46,76 @@ import java.util.concurrent.ExecutionException;
  */
 public class MainPage extends Activity {
 
+    private String SHARED_PREFS;
+    private String MINUTEBYDEGREE;
+
+    private final static int DAY_UPDATE_TIME =7;
+    private String URL_PHP_MINUTEDEGREE;
+
     private TextView tvDeg;
     private TextView tvDecDeg;
     private TextView tvMeteo;
-    private Timer tUpdateTemperature;
     private TimerTask tUpdateTemperatureTask;
     private Boolean isRunning;
     private Time last_try;
+    private Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        String DATE_LAST_UPDATE = getString(R.string.date_last_update);
+        SHARED_PREFS    = getString(R.string.shared_prefs);
+        MINUTEBYDEGREE = getString(R.string.minutebydegree);
+        URL_PHP_MINUTEDEGREE = getString(R.string.URL_PHP_MINUTEDEGREE);
+
         TypefaceProvider.registerDefaultIconSets();
 
         setContentView(R.layout.activity_main_page);
+        mContext = this.getApplicationContext();
+        /**/
+        SharedPreferences prefs = mContext.getSharedPreferences(SHARED_PREFS, 0);
+        SharedPreferences.Editor editor = prefs.edit();
+        Long date_lastUpdate = prefs.getLong(DATE_LAST_UPDATE, 0);
+        if (date_lastUpdate == 0) {
+            date_lastUpdate = System.currentTimeMillis();
+            editor.putLong(DATE_LAST_UPDATE, date_lastUpdate);
+            editor.commit();
+            //retrieve Info
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        retrieveMinuteByDegreeValueFromPhp();
+                    } catch (final IOException e) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(getApplicationContext(), "Erreur MinuteByDegree" + e.getMessage(), Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
+                }
+            }).start();
+        }
+        else if (System.currentTimeMillis() >= date_lastUpdate + DAY_UPDATE_TIME *24*60*60*1000 ) {
+            //retrieve Info
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        retrieveMinuteByDegreeValueFromPhp();
+                    } catch (final IOException e) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(getApplicationContext(), "Erreur MinuteByDegree" + e.getMessage(), Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
+                }
+            }).start();
+        }
+
         tvDeg = (TextView) findViewById(R.id.tvDeg);
         tvDecDeg = (TextView) findViewById(R.id.tvDecDeg);
         tvMeteo = (TextView) findViewById(R.id.tvMeteo);
@@ -77,13 +151,11 @@ public class MainPage extends Activity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    tvMeteo.setText("Impossible de récupérer les infos.");
+                    tvMeteo.setText(R.string.errorInfos);
                 }
             });
             Log.d("OpenWeatherMap : ", e.toString());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         if(o!=null) {
@@ -101,7 +173,7 @@ public class MainPage extends Activity {
     }
 
     private void start_timer() {
-        tUpdateTemperature = new Timer("Update Temperature");
+        Timer tUpdateTemperature = new Timer("Update Temperature");
         tUpdateTemperatureTask = new TimerTask() {
             @Override
             public void run() {
@@ -109,7 +181,7 @@ public class MainPage extends Activity {
                 setWeather();
             }
         };
-        tUpdateTemperature.schedule(tUpdateTemperatureTask,1000,5000);
+        tUpdateTemperature.schedule(tUpdateTemperatureTask, 1000, 5000);
         isRunning = true;
     }
 
@@ -163,6 +235,28 @@ public class MainPage extends Activity {
                 }
             });
             last_try.setToNow();
+        }
+    }
+
+    private void retrieveMinuteByDegreeValueFromPhp() throws IOException {
+        SharedPreferences prefs = mContext.getSharedPreferences(SHARED_PREFS, 0);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        HttpClient httpclient=new DefaultHttpClient();
+        HttpPost httppost=new HttpPost(URL_PHP_MINUTEDEGREE);
+        HttpResponse response = httpclient.execute(httppost);
+
+        if ( response.getStatusLine().getStatusCode() == 200){
+            String str =  EntityUtils.toString(response.getEntity());
+            float minuteByDegree = Float.valueOf(str.substring(1));
+            if (minuteByDegree > 0){
+                editor.putFloat(MINUTEBYDEGREE, minuteByDegree);
+                editor.commit();
+            }
+
+        }
+        else {
+            Log.d("MinuteByDegee","Error : " + response.getStatusLine().getStatusCode());
         }
     }
 }

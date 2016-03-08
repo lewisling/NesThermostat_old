@@ -1,7 +1,7 @@
 # NesThermostat [![Build Status](https://travis-ci.org/vchatela/NesThermostat.svg?branch=master)](https://travis-ci.org/vchatela/NesThermostat)
 The android application to manage the Heater on the local server (at home)
 
-![Screenshot](http://oi67.tiny***REMOVED***c.com/1z3mlit.jpg)
+![Screenshot](http://oi67.tinypic.com/1z3mlit.jpg)
 
 ## Features
 - A first Page which contain all the rooms

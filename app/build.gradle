@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    com***REMOVED***leSdkVersion 21
+    compileSdkVersion 21
     buildToolsVersion "23.0.1"
 
     defaultConfig {
@@ -29,12 +29,12 @@ android {
 }
 
 dependencies {
-    com***REMOVED***le fileTree(include: ['*.jar'], dir: 'libs')
-    testCom***REMOVED***le 'junit:junit:4.12'
-    com***REMOVED***le 'com.android.support:support-v4:21.0.3'
-    com***REMOVED***le 'com.jcraft:jsch:0.1.53'
-    androidTestCom***REMOVED***le 'junit:junit:4.12'
-    com***REMOVED***le 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
-    com***REMOVED***le 'org.glassfish.main:javax.annotation:4.0-b33'
-    com***REMOVED***le 'com.beardedhen:androidbootstrap:2.1.0'
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:support-v4:21.0.3'
+    compile 'com.jcraft:jsch:0.1.53'
+    androidTestCompile 'junit:junit:4.12'
+    compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
+    compile 'org.glassfish.main:javax.annotation:4.0-b33'
+    compile 'com.beardedhen:androidbootstrap:2.1.0'
 }

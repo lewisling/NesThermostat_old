@@ -67,7 +67,7 @@
         android:layout_toEndOf="@+id/tvTempHeater" />
 
     <com.beardedhen.androidbootstrap.BootstrapButton
-        style="@style/wrap***REMOVED***ng_button"
+        style="@style/wrapping_button"
         android:text="Mise à jour"
         android:id="@+id/updateButton"
         app:bootstrapBrand="success"

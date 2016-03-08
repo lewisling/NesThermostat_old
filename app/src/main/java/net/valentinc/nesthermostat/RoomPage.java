@@ -12,9 +12,12 @@ import android.widget.Toast;
 
 import com.beardedhen.androidbootstrap.TypefaceProvider;
 
+import net.danlew.android.joda.JodaTimeAndroid;
 import net.valentinc.seekarc.SeekArc;
 import net.valentinc.server.Temperature;
 import net.valentinc.ssh.SSHManager;
+
+import org.joda.time.DateTimeUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,8 +52,9 @@ public class RoomPage extends Activity {
     private Boolean isRunning;
     private Time last_try;
 
-    private final static String APP    = "NesThermostat";
-    private final static String LAST_UPDATE    = "last_update";
+    private String LAST_UPDATE;
+    private String SHARED_PREFS;
+    private String MINUTEBYDEGREE;
 
     private long last_update;
     private TextView tvLastUpdate;
@@ -64,20 +68,16 @@ public class RoomPage extends Activity {
     private final static String command = "python /home/***REMOVED***/Script_python/android_heater.py ";
     private final static Double minuteToDeg = 2.15/150;
     private TextView tvRemaningTime;
-
-
-    public static String formatHoursAndMinutes(int totalMinutes) {
-        String minutes = Integer.toString(totalMinutes % 60);
-        minutes = minutes.length() == 1 ? "0" + minutes : minutes;
-        if(totalMinutes/60>=1)
-            return (totalMinutes / 60) + "h" + minutes;
-        else
-            return String.valueOf(totalMinutes) + " min";
-    }
+    private TextView tvTempsRestant;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SHARED_PREFS    = getString(R.string.shared_prefs);
+        MINUTEBYDEGREE = getString(R.string.minutebydegree);
+        LAST_UPDATE    = getString(R.string.last_update);
+        JodaTimeAndroid.init(this);
+
         TypefaceProvider.registerDefaultIconSets();
 
         setContentView(R.layout.activity_room_page);
@@ -86,6 +86,7 @@ public class RoomPage extends Activity {
         tvTempHeater = (TextView) findViewById(R.id.tvTempHeater);
         switchButton = (Switch) findViewById(R.id.toggleHeaterOn);
         tvLastUpdate = (TextView) findViewById(R.id.textViewLastUpdate);
+        tvTempsRestant = (TextView) findViewById(R.id.tvTempsRestant);
         progressBar = (com.beardedhen.androidbootstrap.BootstrapProgressBar) findViewById(R.id.progressBar);
         progressBar.setProgress(0);
         com.beardedhen.androidbootstrap.BootstrapButton updateButton = (com.beardedhen.androidbootstrap.BootstrapButton) findViewById(R.id.updateButton);
@@ -93,8 +94,10 @@ public class RoomPage extends Activity {
         switchButton.setTextOff("Eteins");
         switchButton.setTextOn("Allumé");
 
+        prefs = getApplicationContext().getSharedPreferences(SHARED_PREFS, 0);
+        minuteToDeg = prefs.getFloat(MINUTEBYDEGREE, (float)0.01433333334);
+        Log.d("MinuteByDegree",Float.toString(minuteToDeg));
 
-        prefs = getApplicationContext().getSharedPreferences(APP,0);
         editor = prefs.edit();
 
         last_update = prefs.getLong(LAST_UPDATE, 0);
@@ -102,14 +105,33 @@ public class RoomPage extends Activity {
             tvLastUpdate.setText("0 s");
             last_update = System.currentTimeMillis();
             editor.putLong(LAST_UPDATE,last_update);
+
+            Log.d("LASTUPDATE", "LastUpdate : " + last_update);
             editor.commit();
         }
         else {
-            Long remaining = System.currentTimeMillis()-last_update;
-            tvLastUpdate.setText(remaining/1000 + " s");
+            Long millis = DateTimeUtils.currentTimeMillis() - last_update;
+            long secondsInMilli = 1000;
+            long minutesInMilli = secondsInMilli * 60;
+            long hoursInMilli = minutesInMilli * 60;
+            long daysInMilli = hoursInMilli * 24;
+
+            long elapsedDays = millis / daysInMilli;
+            millis = millis % daysInMilli;
+
+            long elapsedHours = millis / hoursInMilli;
+            millis = millis % hoursInMilli;
+
+            long elapsedMinutes = millis / minutesInMilli;
+            millis = millis % minutesInMilli;
+
+            long elapsedSeconds = millis / secondsInMilli;
+            tvLastUpdate.setText(String.format("%d J %d h %d min %d s",
+                    elapsedDays, elapsedHours, elapsedMinutes, elapsedSeconds
+            ));
+
         }
 
-        //TODO : check if connection lost
         instance = new SSHManager(userName, password, connectionIP, "");
 
         updateButton.setOnClickListener(new View.OnClickListener() {
@@ -273,7 +295,25 @@ public class RoomPage extends Activity {
             @Override
             public void run() {
                 last_update = prefs.getLong(LAST_UPDATE, 0);
-                tvLastUpdate.setText((System.currentTimeMillis()-last_update)/1000 + " s");
+                long millis = DateTimeUtils.currentTimeMillis() - last_update;
+                long secondsInMilli = 1000;
+                long minutesInMilli = secondsInMilli * 60;
+                long hoursInMilli = minutesInMilli * 60;
+                long daysInMilli = hoursInMilli * 24;
+
+                long elapsedDays = millis / daysInMilli;
+                millis = millis % daysInMilli;
+
+                long elapsedHours = millis / hoursInMilli;
+                millis = millis % hoursInMilli;
+
+                long elapsedMinutes = millis / minutesInMilli;
+                millis = millis % minutesInMilli;
+
+                long elapsedSeconds = millis / secondsInMilli;
+                tvLastUpdate.setText(String.format("%d J %d h %d min %d s",
+                        elapsedDays, elapsedHours, elapsedMinutes, elapsedSeconds
+                ));
             }
         });
     }
@@ -364,7 +404,6 @@ public class RoomPage extends Activity {
         conn.setConnectTimeout(15000 /* milliseconds */);
         conn.setRequestMethod("GET");
         conn.setDoInput(true);
-        // Starts the query
         conn.connect();
         int response = conn.getResponseCode();
         if (response == 200) {
@@ -402,7 +441,36 @@ public class RoomPage extends Activity {
             });
             UpdateIHM(String.valueOf((int) temp[0]), tvDeg);
             UpdateIHM(String.valueOf((int) ((temp[0] - ((int) temp[0])) * 10)), tvDecDeg);
-            UpdateIHM(formatHoursAndMinutes((int)((Float.parseFloat(tvTempHeater.getText().toString())-temp[0])/minuteToDeg)),tvRemaningTime);
+            float tem = (Float.parseFloat(tvTempHeater.getText().toString())-temp[0]);
+            if(tem<=0){
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        tvRemaningTime.setVisibility(View.INVISIBLE);
+                        tvTempsRestant.setVisibility(View.INVISIBLE);
+                    }
+                });
+            }
+            else {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        tvRemaningTime.setVisibility(View.VISIBLE);
+                        tvTempsRestant.setVisibility(View.VISIBLE);
+                    }
+                });
+                Float fminutes = tem / minuteToDeg;
+                long minutes = fminutes.longValue();
+                long hoursInMinutes = 60;
+
+                long elapsedHours = minutes / hoursInMinutes;
+                minutes = minutes % hoursInMinutes;
+
+                UpdateIHM(String.format("%d h %d min",
+                        elapsedHours,
+                        minutes
+                ), tvRemaningTime);
+            }
         } catch (final IOException e) {
             showError("Erreur Réseau ");
         }
