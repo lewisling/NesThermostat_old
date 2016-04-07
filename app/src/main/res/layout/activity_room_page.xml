@@ -162,10 +162,8 @@
         android:id="@+id/textView3"
         android:layout_marginBottom="14dp"
         android:layout_alignParentBottom="true"
-        android:layout_alignRight="@+id/seekArc"
-        android:layout_alignEnd="@+id/seekArc"
-        android:layout_marginRight="24dp"
-        android:layout_marginEnd="24dp" />
+        android:layout_alignRight="@+id/updateButton"
+        android:layout_alignEnd="@+id/updateButton" />
 
     <TextView
         android:layout_width="65dp"
@@ -177,7 +175,9 @@
         android:layout_alignParentEnd="true"
         android:layout_marginRight="9dp"
         android:layout_marginEnd="9dp"
-        android:gravity="right" />
+        android:gravity="right"
+        android:layout_toRightOf="@+id/tvTempsRestant"
+        android:layout_toEndOf="@+id/tvTempsRestant" />
 
     <com.beardedhen.androidbootstrap.BootstrapProgressBar
         android:layout_width="wrap_content"

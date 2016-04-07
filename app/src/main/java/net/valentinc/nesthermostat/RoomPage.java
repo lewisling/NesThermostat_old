@@ -3,6 +3,7 @@ package net.valentinc.nesthermostat;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.text.format.Time;
 import android.util.Log;
 import android.view.View;
@@ -26,6 +27,7 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Formatter;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -52,14 +54,12 @@ public class RoomPage extends Activity {
     private Boolean isRunning;
     private Time last_try;
 
-    private String LAST_UPDATE;
     private String SHARED_PREFS;
     private String MINUTEBYDEGREE;
 
     private long last_update;
     private TextView tvLastUpdate;
     private SharedPreferences prefs;
-    private SharedPreferences.Editor editor;
 
     private SSHManager instance;
     private final static String userName = "***REMOVED***";
@@ -76,10 +76,11 @@ public class RoomPage extends Activity {
         super.onCreate(savedInstanceState);
         SHARED_PREFS    = getString(R.string.shared_prefs);
         MINUTEBYDEGREE = getString(R.string.minutebydegree);
-        LAST_UPDATE    = getString(R.string.last_update);
         JodaTimeAndroid.init(this);
 
         TypefaceProvider.registerDefaultIconSets();
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
         setContentView(R.layout.activity_room_page);
         tvDeg = (TextView) findViewById(R.id.tvDeg);
@@ -95,20 +96,25 @@ public class RoomPage extends Activity {
         switchButton.setTextOff("Eteins");
         switchButton.setTextOn("Allumé");
 
+        instance = new SSHManager(userName, password, connectionIP, "");
+
         prefs = getApplicationContext().getSharedPreferences(SHARED_PREFS, 0);
-        minuteToDeg = prefs.getFloat(MINUTEBYDEGREE, (float)0.01433333334);
+        minuteToDeg = prefs.getFloat(MINUTEBYDEGREE, (float)0.021979);
         Log.d("MinuteByDegree",Float.toString(minuteToDeg));
 
-        editor = prefs.edit();
+        final String errorMessage = instance.connect();
+        if (errorMessage != null) {
+            Log.d("onClick",errorMessage);
+            showError("Erreur Réseau");
+        }
+        String result = instance.sendCommand(commandUpdate);
+        result = result.trim();
+        if(!result.equals(""))
+            last_update = Long.parseLong(result);
+        else last_update = 0;
 
-        last_update = prefs.getLong(LAST_UPDATE, 0);
         if(last_update ==0){
-            tvLastUpdate.setText("0 s");
-            last_update = System.currentTimeMillis();
-            editor.putLong(LAST_UPDATE,last_update);
-
-            Log.d("LASTUPDATE", "LastUpdate : " + last_update);
-            editor.commit();
+            last_update = DateTimeUtils.currentTimeMillis();
         }
         else {
             Long millis = DateTimeUtils.currentTimeMillis() - last_update;
@@ -127,13 +133,30 @@ public class RoomPage extends Activity {
             millis = millis % minutesInMilli;
 
             long elapsedSeconds = millis / secondsInMilli;
-            tvLastUpdate.setText(String.format("%d J %d h %d min %d s",
-                    elapsedDays, elapsedHours, elapsedMinutes, elapsedSeconds
-            ));
-
+            if(elapsedDays ==0){
+                if(elapsedHours == 0) {
+                    if(elapsedMinutes==0){
+                        tvLastUpdate.setText(String.format("%d s",
+                                elapsedSeconds
+                        ));
+                    }else{
+                        tvLastUpdate.setText(String.format("%d min %d s",
+                                elapsedMinutes, elapsedSeconds
+                        ));
+                    }
+                }else{
+                    tvLastUpdate.setText(String.format("%d h %d min %d s",
+                            elapsedHours, elapsedMinutes, elapsedSeconds
+                    ));
+                }
+            }else {
+                tvLastUpdate.setText(String.format("%d J %d h %d min %d s",
+                        elapsedDays, elapsedHours, elapsedMinutes, elapsedSeconds
+                ));
+            }
+            Log.d("LASTUPDATE", "LastUpdate : " + last_update);
         }
 
-        instance = new SSHManager(userName, password, connectionIP, "");
 
         updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -143,15 +166,11 @@ public class RoomPage extends Activity {
                     public void run() {
                         //Call heater function
                         setProgressBarUI(5);
-                        final String errorMessage = instance.connect();
+
                         setProgressBarUI(15);
 
-                        if (errorMessage != null) {
-                            Log.d("onClick",errorMessage);
-                            showError("Erreur Réseau");
-                        }
+                        final String result = instance.sendCommand(commandHeater + tvTempHeater.getText() + " " + switchButton.isChecked());
                         setProgressBarUI(30);
-                        final String result = instance.sendCommand(command + tvTempHeater.getText() + " " + switchButton.isChecked());
                         if (result != null && result.contains("Android_Heater.py") && result.contains("envois du signal")) { //TODO
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -160,21 +179,14 @@ public class RoomPage extends Activity {
                                     progressBar.setProgress(100);
                                 }
                             });
-
-                            last_update = prefs.getLong(LAST_UPDATE, 0);
-                            editor.putLong(LAST_UPDATE,System.currentTimeMillis());
-                            editor.commit();
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    tvLastUpdate.setText("0 s");
-                                }
-                            });
+                            String command = String.format(commandLastUpdate,DateTimeUtils.currentTimeMillis());
+                            instance.sendCommand(command);
+                            Log.d("CommandLastUpdate",command);
+                            last_update = DateTimeUtils.currentTimeMillis();
 
                         } else {
                             showError("Erreur Réseau");
                         }
-                        instance.close();
                     }
                 }).start();
             }
@@ -295,7 +307,6 @@ public class RoomPage extends Activity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                last_update = prefs.getLong(LAST_UPDATE, 0);
                 long millis = DateTimeUtils.currentTimeMillis() - last_update;
                 long secondsInMilli = 1000;
                 long minutesInMilli = secondsInMilli * 60;
@@ -312,9 +323,27 @@ public class RoomPage extends Activity {
                 millis = millis % minutesInMilli;
 
                 long elapsedSeconds = millis / secondsInMilli;
-                tvLastUpdate.setText(String.format("%d J %d h %d min %d s",
-                        elapsedDays, elapsedHours, elapsedMinutes, elapsedSeconds
-                ));
+                if(elapsedDays ==0){
+                    if(elapsedHours == 0) {
+                        if(elapsedMinutes==0){
+                            tvLastUpdate.setText(String.format("%d s",
+                                    elapsedSeconds
+                            ));
+                        }else{
+                            tvLastUpdate.setText(String.format("%d min %d s",
+                                    elapsedMinutes, elapsedSeconds
+                            ));
+                        }
+                    }else{
+                        tvLastUpdate.setText(String.format("%d h %d min %d s",
+                                elapsedHours, elapsedMinutes, elapsedSeconds
+                        ));
+                    }
+                }else {
+                    tvLastUpdate.setText(String.format("%d J %d h %d min %d s",
+                            elapsedDays, elapsedHours, elapsedMinutes, elapsedSeconds
+                    ));
+                }
             }
         });
     }
@@ -322,6 +351,7 @@ public class RoomPage extends Activity {
     @Override
     protected void onPause(){
         super.onPause();
+        instance.close();
         if(isRunning) {
             tUpdateTemperatureTask.cancel();
             tUpdateIHM.cancel();
@@ -333,6 +363,8 @@ public class RoomPage extends Activity {
     @Override
     protected void onResume(){
         super.onResume();
+
+        instance.connect();
         if(!isRunning) {
             start_timer();
             Log.d("onPause","isRunning true");
@@ -357,7 +389,11 @@ public class RoomPage extends Activity {
             }
         }).start();
     }
-
+    @Override
+    protected void onStop(){
+        super.onStop();
+        instance.close();
+    }
     private void setSwitchOnOff() {
         try {
             iss[1] = getISFromURL(new URL("http://***REMOVED***/files/activated_file"));
@@ -442,7 +478,14 @@ public class RoomPage extends Activity {
             });
             UpdateIHM(String.valueOf((int) temp[0]), tvDeg);
             UpdateIHM(String.valueOf((int) ((temp[0] - ((int) temp[0])) * 10)), tvDecDeg);
-            float tem = (Float.parseFloat(tvTempHeater.getText().toString())-temp[0]);
+            String sTemp = tvTempHeater.getText().toString();
+            float tem;
+            if(sTemp != "") {
+                tem = (Float.parseFloat(sTemp) - temp[0]);
+            }
+            else{
+                tem = 0.0f;
+            }
             if(tem<=0){
                 runOnUiThread(new Runnable() {
                     @Override
@@ -478,16 +521,11 @@ public class RoomPage extends Activity {
     }
 
     private void showError(final String msg){
-        Time now = new Time();
-        now.setToNow();
-        if(Time.compare(now,last_try)>10) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     Toast.makeText(RoomPage.this, msg, Toast.LENGTH_SHORT).show();
                 }
             });
-            last_try.setToNow();
         }
-    }
 }

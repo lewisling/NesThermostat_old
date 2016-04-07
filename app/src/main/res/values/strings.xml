@@ -5,8 +5,13 @@
 	<string name="errorInfos">Impossible de récupérer les infos.</string>
 	<string name="shared_prefs">prefs0</string>
 	<string name="minutebydegree">minutebydegree</string>
-	<string name="last_update">last_update</string>
 	<string name="date_last_update">date_lastupdate</string>
 	<string name="URL_PHP_MINUTEDEGREE">
 </string>
+	<string name="gcm_send_message">Token retrieved and sent to server! You can now use gcmsender to
+        send downstream messages to this app.</string>
+	<string name="registering_message">Generating InstanceID token...</string>
+    <string name="token_error_message">An error occurred while either fetching the InstanceID token,
+        sending the fetched token to the server or subscribing to the PubSub topic. Please try
+        running the sample again.</string>
 </resources>

@@ -18,7 +18,8 @@ import java.util.concurrent.ExecutionException;
  */
 public abstract class JsonParser {
     private static String json;
-    private static String BASE_URL ="http://apipenweathermap.org/data/2.5/weather?q=Lescar,fr&units=metric&lang=fr&apid=44db6a862fba0b067b1930da0d769e98";
+    private static final String APPID = "124db9b65e41932220cdc2392bad7ebf";
+    private static String BASE_URL ="http://api.openweathermap.org/data/2.5/weather?q=Lescar,fr&units=metric&lang=fr&APPID="+APPID;
 
     public static Openweathermap jsonToPOJO() throws IOException, ExecutionException, InterruptedException {
         JSONWeatherTask task = new JSONWeatherTask();
